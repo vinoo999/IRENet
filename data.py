@@ -35,7 +35,7 @@ def download(path='captions.zip'):
     return annotation_file, PATH
 
 
-def prune_dataset(annotation_file, image_dir):
+def prune_dataset(annotation_file, image_dir, num_examples=30000):
     # read the json file
     with open(annotation_file, 'r') as f:
         annotations = json.load(f)
@@ -58,7 +58,32 @@ def prune_dataset(annotation_file, image_dir):
                                             all_img_name_vector,
                                             random_state=1)
 
-    # selecting the first 30000 captions from the shuffled set
-    num_examples = 30000
+    # selecting the first num_examples captions from the shuffled set
     train_captions = train_captions[:num_examples]
     img_name_vector = img_name_vector[:num_examples]
+
+    return train_captions, img_name_vector, all_captions, all_img_name_vector
+
+def load_image(image_path):
+    img = tf.read_file(image_path)
+    img = tf.image.decode_jpeg(img, channels=3)
+    img = tf.image.resize_images(img, (299, 299))
+    img = tf.keras.applications.inception_v3.preprocess_input(img)
+    return img, image_path
+
+def calc_max_length(tensor):
+    return max(len(t) for t in tensor)
+
+def text_one_hot(captions, k=5000):
+    tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=k, 
+                                                  oov_token="<unk>", 
+                                                  filters='!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
+    tokenizer.fit_on_texts(captions)
+    tokenizer.word_index['<pad>'] = 0
+    seqs = tokenizer.texts_to_sequences(captions)
+    cap_vector = tf.keras.preprocessing.sequence.pad_sequences(seqs, padding='post')
+    max_length = calc_max_length(seqs)
+    return seqs
+
+def get_tf_data():
+    pass

@@ -5,6 +5,7 @@ from image_decoder import ImageDecoder
 import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
+import data
 
 class IreNet(object):
     def __init__(self, *args):
@@ -20,3 +21,20 @@ class IreNet(object):
     def call(self, x):
 
         return
+    
+def cache_img_features(model, img_name_vector, batch_size=16):
+    # getting the unique images
+    encode_train = sorted(set(img_name_vector))
+
+    # feel free to change the batch_size according to your system configuration
+    image_dataset = tf.data.Dataset.from_tensor_slices(
+                                    encode_train).map(data.load_image).batch(16)
+
+    for img, path in image_dataset:
+        batch_features = model(img)
+        batch_features = tf.reshape(batch_features, 
+                                    (batch_features.shape[0], -1, batch_features.shape[3]))
+
+        for bf, p in zip(batch_features, path):
+            path_of_feature = p.numpy().decode("utf-8")
+            np.save(path_of_feature, bf.numpy())

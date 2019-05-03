@@ -1,11 +1,22 @@
-from text_encoder import WordEncoder
+from text_encoder import TextEncoder
+from text_decoder import TextDecoder
+from image_encoder import ImageEncoder
+from image_decoder import ImageDecoder
+import tensorflow as tf
+import numpy as np
+from tqdm import tqdm
+
 class IreNet(object):
     def __init__(self, *args):
-        self.word_encoder = WordEncoder()
+        self._bulid_arch()
+        pass
     
-    def _build_arch(self, caption):
-        self.caption_embedding = self.word_encoder.transform(caption)
+    def _build_arch(self):
+        self.text_encoder = TextEncoder()
+        self.image_encoder = ImageEncoder()
+        self.image_input = tf.placeholder()
+        return
 
+    def call(self, x):
 
-if __name__ == "__main__":
-    irenet = IreNet()
+        return

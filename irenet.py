@@ -1,8 +1,11 @@
-import text_encoder as WordEncoder
+from text_encoder import WordEncoder
 class IreNet(object):
     def __init__(self, *args):
-        pass
+        self.word_encoder = WordEncoder()
     
-    def _build_arch(self):
-        word_encoder = WordEncoder
-        self.word_input = word_encoder.input
+    def _build_arch(self, caption):
+        self.caption_embedding = self.word_encoder.transform(caption)
+
+
+if __name__ == "__main__":
+    irenet = IreNet()

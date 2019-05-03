@@ -22,7 +22,8 @@ class WordEncoder(object):
     
     def train(self):
         documents = []
-        for i, caption in enumerate(train_captions):
+        _, all_captions = pickle.load( open( "captions.pickle", "rb" ) )
+        for i, caption in enumerate(all_captions):
             tokenized_words = caption.split(" ")
             x = [word for word in tokenized_words if word.lower() not in self.stop_words]
             # TODO: should I remove <start> and <end>

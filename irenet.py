@@ -48,6 +48,7 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
         total_loss = 0
         
         for (batch, (img, img_tensor, target, doc2vec_emb)) in enumerate(dataset):
+            print("Batch {} in time {}".format(batch+1, time.time()-start))
             loss = 0
             
             # initializing the hidden state for each batch
@@ -58,24 +59,27 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
             
             with tf.GradientTape() as tape:
                 features = model.image_encoder(img_tensor)
+                print("Image Encoder in time {}".format(time.time()-start))
                 features2 = model.text_encoder(doc2vec_emb)
-                
+                print("Doc2Vec Encoder in time {}".format(time.time()-start))
+
                 feature_shape = features.shape
-                feature_size = np.float64(1.0)
+                feature_size = np.float32(1.0)
                 for dim in feature_shape:
                     feature_size*=int(dim)
                 
                 latent_loss = model.latent_loss(features, features2) / feature_size
             
-                features_out = np.mean([features, features2], axis=0, dtype=np.float64)
+                features_out = np.mean([features, features2], axis=0)
 
-                img_size = np.float64(1.0)
+                img_size = np.float32(1.0)
                 img_shape = img.shape
                 for dim in img_shape:
                     img_size*=int(dim)
                 recon = model.image_decoder(features_out)
                 recon_loss = model.img_loss(img, recon) / img_size
 
+                print("recon in time {}".format(time.time()-start))
                 for i in range(1, target.shape[1]):
                     # passing the features through the decoder
                     predictions, hidden, _ = model.text_decoder(dec_input, features_out, hidden)

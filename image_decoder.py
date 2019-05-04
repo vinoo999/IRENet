@@ -15,7 +15,7 @@ class ImageDecoder(tf.keras.Model):
         self.deconv5 = tf.keras.layers.Conv2DTranspose(filters=3, kernel_size=(5,5), activation='sigmoid', padding='valid', strides=(2,2), name='deconv5')
 
         self.dropout = tf.keras.layers.Dropout(0.2)
-        self.batch_norm = tf.keras.layers.BatchNormalization()
+        # self.batch_norm = tf.keras.layers.BatchNormalization()
 
     def call(self, x, training=False):
         x = self.decode_fc1(x)
@@ -26,13 +26,13 @@ class ImageDecoder(tf.keras.Model):
             x = self.dropout(x)
         x = self.reshape(x)
         x = self.deconv1(x)
-        x = self.batch_norm(x)
+        # x = self.batch_norm(x)
         x = self.deconv2(x)
-        x = self.batch_norm(x)
+        # x = self.batch_norm(x)
         x = self.deconv3(x)
-        x = self.batch_norm(x)
+        # x = self.batch_norm(x)
         x = self.deconv4(x)
-        x = self.batch_norm(x)
+        # x = self.batch_norm(x)
         x = self.deconv5(x)
 
         return x

@@ -14,6 +14,7 @@ import json
 from glob import glob 
 from PIL import Image
 import pickle
+from tqdm import tqdm
 
 def download(path='captions.zip'):
     annotation_zip = tf.keras.utils.get_file(path, 
@@ -94,7 +95,7 @@ def cache_img_features(model, img_name_vector, batch_size=16):
     image_dataset = tf.data.Dataset.from_tensor_slices(
                                     encode_train).map(load_image).batch(16)
 
-    for img, path in image_dataset:
+    for img, path in tqdm(image_dataset):
         batch_features = model(img)
         batch_features = tf.reshape(batch_features, 
                                     (batch_features.shape[0], -1, batch_features.shape[3]))
@@ -111,25 +112,28 @@ def cache_doc2vec(model, captions):
 def get_tf_data(imgs, captions, doc2vec, batch_size=64, buffer_size=1000, parallel_workers=8, top_k=5000):
 
     tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=top_k, 
-                                                    oov_token="<unk>", 
-                                                    filters='!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
+                                                        oov_token="<unk>", 
+                                                        filters='!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
     tokenizer.fit_on_texts(captions)
     seqs = tokenizer.texts_to_sequences(captions)
     tokenizer.word_index['<pad>'] = 0
     seqs = tokenizer.texts_to_sequences(captions)
     vector = tf.keras.preprocessing.sequence.pad_sequences(seqs, padding='post')
-
-    dataset = tf.data.Dataset.from_tensor_slices((imgs, captions, vector))
-    # using map to load the numpy files in parallel
-    dataset = dataset.map(lambda item1, item2, item3: tf.py_function(
-          map_func, [item1, item2, item3, doc2vec], [tf.float32, tf.float32, tf.float32, tf.int32]), num_parallel_calls=parallel_workers)
-    # shuffling and batching
+    # print(len(vector))
+    doc2vec_captions = []
+    for caption in captions:
+        doc2vec_captions.append(doc2vec.transform(caption))
+    doc2vec_captions = np.array(doc2vec_captions)
+    dataset = tf.data.Dataset.from_tensor_slices((imgs, vector, doc2vec_captions))
+    dataset = dataset.map(lambda item1, item2, item3: tf.py_func(
+          map_func, [item1, item2, item3], [tf.float32, tf.float32, tf.int32,  tf.float32]), num_parallel_calls=parallel_workers)
+#     # shuffling and batching
     dataset = dataset.shuffle(buffer_size).batch(batch_size)
-    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    return dataset
+#     dataset = dataset.prefetch(buffer_size=tf.buffer_size)
+    return dataset, tokenizer
 
-def map_func(img_name, cap, cap_vector, doc2vec):
-    img = load_image(img_name)
+def map_func(img_name, cap_vector, doc2vec_emb):
+    img, _ = load_image(img_name)
     img_tensor = np.load(img_name.decode('utf-8')+'.npy')
-    doc2vec_emb = doc2vec.transform(cap)
+    # print(img, img_tensor, cap_vector, doc2vec_emb)
     return img, img_tensor, cap_vector, doc2vec_emb

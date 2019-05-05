@@ -96,10 +96,13 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
             optimizer.apply_gradients(zip(gradients, variables), tf.train.get_or_create_global_step())
             
             if batch % 100 == 0:
-                print ('Epoch {} Batch {} Latent Loss {:.4f} Recon Loss {:.4f} Text Loss {:.4f} Total Loss {:.4f} Time: {}'.format(epoch + 1, 
-                                                            batch, 
-                                                            latent_loss.numpy(), recon_loss.numpy(), text_loss.numpy(), final_loss.numpy(),
-                                                            time.time()-start))
+                with open("output.txt", "a") as f:
+                    message = 'Epoch {} Batch {} Latent Loss {:.4f} Recon Loss {:.4f} Text Loss {:.4f} Total Loss {:.4f} Time: {}'.format(epoch + 1, 
+                                                                batch, 
+                                                                latent_loss.numpy(), recon_loss.numpy(), text_loss.numpy(), final_loss.numpy(),
+                                                                time.time()-start)
+                    print(message)
+                    f.write(message)
         # storing the epoch end loss value to plot later
         loss_plot.append(total_loss)
         

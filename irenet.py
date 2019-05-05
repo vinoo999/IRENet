@@ -65,7 +65,7 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
                 for dim in feature_shape:
                     feature_size*=int(dim)
 
-                latent_loss = model.latent_loss(features, features2) / feature_size
+                latent_loss = 20*model.latent_loss(features, features2) / feature_size
                 features_out = tf.reduce_mean([features, features2], axis=0)
                 recon = model.image_decoder(features_out)
 
@@ -73,7 +73,7 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
                 img_shape = img.shape
                 for dim in img_shape:
                     img_size*=int(dim)
-                recon_loss = model.img_loss(img, recon) / img_size
+                recon_loss = 5*model.img_loss(img, recon) / img_size
 
                 for i in range(1, target.shape[1]):
                     # passing the features through the decoder
@@ -84,7 +84,7 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
                     # using teacher forcing
                     dec_input = tf.expand_dims(target[:, i], 1)
             
-                text_loss = loss / int(target.shape[1])
+                text_loss = 2*loss / int(target.shape[1])
                 final_loss = text_loss + latent_loss + recon_loss
             
             total_loss += final_loss

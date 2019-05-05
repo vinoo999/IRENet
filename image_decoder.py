@@ -12,9 +12,9 @@ class ImageDecoder(tf.keras.Model):
         self.upsample2 = tf.keras.layers.UpSampling2D((3,3)) # 60x60
         self.deconv3 = tf.keras.layers.Conv2D(16, (5,5), padding='same') # 56x56
         self.upsample3 = tf.keras.layers.UpSampling2D((3,3)) # 168x168
-        self.deconv4 = tf.keras.layers.Conv2D(3, (5,5), padding='same') # 164x164
-        self.upsample4 = tf.keras.layers.UpSampling2D((2,2)) # 168x168
-        self.crop = tf.keras.layers.Cropping2D(cropping=((15, 15), (14, 14)))
+        self.deconv4 = tf.keras.layers.Conv2D(3, (5,5), padding='valid') # 164x164
+        self.upsample4 = tf.keras.layers.UpSampling2D((2,2)) # 328x328
+        self.crop = tf.keras.layers.Cropping2D(cropping=((27, 26), (26, 27)))
 
     def call(self, x):
         x = self.reshape(x)

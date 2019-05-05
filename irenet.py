@@ -71,7 +71,7 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
                 latent_loss = model.latent_loss(features, features2) / feature_size
             
                 features_out = np.mean([features, features2], axis=0)
-
+                print("loss calc in time {}, {}".format(time.time()-start, latent_loss))
                 img_size = np.float32(1.0)
                 img_shape = img.shape
                 for dim in img_shape:
@@ -79,7 +79,7 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
                 recon = model.image_decoder(features_out)
                 recon_loss = model.img_loss(img, recon) / img_size
 
-                print("recon in time {}".format(time.time()-start))
+                print("recon in time {}, {}".format(time.time()-start, recon_loss))
                 for i in range(1, target.shape[1]):
                     # passing the features through the decoder
                     predictions, hidden, _ = model.text_decoder(dec_input, features_out, hidden)
@@ -89,18 +89,21 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
                     # using teacher forcing
                     dec_input = tf.expand_dims(target[:, i], 1)
             
-            text_loss = loss / int(target.shape[1])
-            final_loss = text_loss + latent_loss + recon_loss
-
+                text_loss = loss / int(target.shape[1])
+                final_loss = text_loss + latent_loss + recon_loss
+            
+            print("RNN in time {} {}".format(time.time()-start, text_loss))
             total_loss += final_loss
             
             variables = model.image_encoder.variables + model.text_encoder.variables + model.text_decoder.variables + model.image_decoder.variables
-            
+            # print(variables)
             gradients = tape.gradient(final_loss, variables) 
-            
+            print("Gradient in time {}".format(time.time()-start))
+            # print(gradients)
             optimizer.apply_gradients(zip(gradients, variables), tf.train.get_or_create_global_step())
+            print("Apply grad in time {}".format(time.time()-start))
             
-            if batch % 100 == 0:
+            if batch % 1 == 0:
                 print ('Epoch {} Batch {} Latent Loss {:.4f} Recon Loss {:.4f} Text Loss {:.4f} Total Loss {:.4f}'.format(epoch + 1, 
                                                             batch, 
                                                             latent_loss.numpy(), recon_loss.numpy(), text_loss.numpy(), final_loss.numpy()))

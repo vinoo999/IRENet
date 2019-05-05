@@ -54,7 +54,7 @@ def train(model, dataset, tokenizer, batch_size=16, epochs=20):
             # because the captions are not related from image to image
             hidden = model.text_decoder.reset_state(batch_size=target.shape[0])
 
-            dec_input = tf.expand_dims([tokenizer.word_index['<start>']] * batch_size, 1)
+            dec_input = tf.expand_dims([tokenizer.word_index['<start>']] * target.shape[0], 1)
             
             with tf.GradientTape() as tape:
                 features = model.image_encoder(img_tensor)
